@@ -1,7 +1,7 @@
 # Item Catalog
 
 ## About
-This application is prividing a list of book within a variety of categories as well as provide a user registration and authentication system. Registered users will have the ability to post, edit and delete their own items.
+This application is providing a list of book within a variety of categories as well as provide a user registration and authentication system. Registered users will have the ability to post, edit and delete their own items.
 
 ### Required Software:
 
