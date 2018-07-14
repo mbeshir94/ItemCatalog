@@ -4,29 +4,35 @@ from flask import Flask, render_template, request, redirect, url_for, \
 from flask import session as login_session
 from flask import make_response
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from database_setup import Base, BookDB, User, CategoryDB
 import random
 import string
 import httplib2
 import json
 import requests
+import logging
 from oauth2client.client import AccessTokenCredentials
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+from sqlalchemy.pool import SingletonThreadPool
+
+handler = logging.FileHandler('app.log')  # errors logged to this file
+handler.setLevel(logging.ERROR)  # only log errors and above
 
 app = Flask(__name__)
 app.secret_key = 'itsasecret'
+app.logger.addHandler(handler)
 
 # google client secret
 secret_file = json.loads(open('client_secret.json', 'r').read())
 CLIENT_ID = secret_file['web']['client_id']
 APPLICATION_NAME = 'BooksCatalog'
 
-engine = create_engine('sqlite:///BookCatalog.db')
+engine = create_engine('postgresql://postgres:postgres@localhost/BookCatalog')
 Base.metadata.bind = engine
 
-DBSession = sessionmaker(bind=engine)
+DBSession = scoped_session(sessionmaker(bind=engine, autoflush=True))
 session = DBSession()
 
 
@@ -49,8 +55,12 @@ def createUser():
     url = login_session['img']
     provider = login_session['provider']
     newUser = User(name=name, email=email, image=url, provider=provider)
-    session.add(newUser)
-    session.commit()
+    try:
+        session.add(newUser)
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def new_state():

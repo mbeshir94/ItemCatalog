@@ -14,6 +14,8 @@ import requests
 from oauth2client.client import AccessTokenCredentials
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+from sqlalchemy.pool import SingletonThreadPool
+
 
 app = Flask(__name__)
 app.secret_key = 'itsasecret'
@@ -23,7 +25,8 @@ secret_file = json.loads(open('client_secret.json', 'r').read())
 CLIENT_ID = secret_file['web']['client_id']
 APPLICATION_NAME = 'BooksCatalog'
 
-engine = create_engine('sqlite:///BookCatalog.db')
+engine = create_engine('sqlite:///BookCatalog.db',
+                poolclass=SingletonThreadPool)
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -498,5 +501,5 @@ def gdisconnect():
         return response
 
 if __name__ == '__main__':
-    app.debug = True
+    #app.debug = True
     app.run()

@@ -4,6 +4,9 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
+from sqlalchemy.pool import SingletonThreadPool
+from sqlalchemy.schema import ForeignKeyConstraint
+
 Base = declarative_base()
 
 
@@ -11,7 +14,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'user'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(150), nullable=False)
     email = Column(String(150), nullable=False)
     image = Column(String(150))
@@ -21,13 +24,11 @@ class User(Base):
 class CategoryDB(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(150), nullable=False)
+    name = Column(String(150), primary_key=True)
 
     @property
     def serialize(self):
         return{
-            'id': self.id,
             'name': self.name
         }
 
@@ -35,13 +36,12 @@ class CategoryDB(Base):
 class BookDB(Base):
     __tablename__ = "books"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     bookName = Column(String(150), nullable=False)
     authorName = Column(String(150), nullable=False)
     coverUrl = Column(String(500), nullable=False)
     description = Column(String(), nullable=False)
-    category = Column(String(150), ForeignKey('categories.name'))
-    category_rel =  relationship(CategoryDB)
+    category = Column(String(150))
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
@@ -56,5 +56,5 @@ class BookDB(Base):
             'description': self.description
         }
 
-engine = create_engine('sqlite:///BookCatalog.db')
+engine = create_engine('postgresql://postgres:postgres@localhost/BookCatalog')
 Base.metadata.create_all(engine)
